@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
 import { io, Socket } from 'socket.io-client';
 import './App.css'; // We'll create this for styles
 
@@ -256,3 +257,7 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+const container = document.getElementById('root');
+const root = createRoot(container!);
+root.render(<App />);
