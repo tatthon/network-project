@@ -1,6 +1,6 @@
 # network-project
 
-# Multi-Client Chat Application using Socket Programming in TypeScript
+# Multi-Client Chat Application using Socket.IO in TypeScript
 
 This project implements a chat application with the following features:
 - Multiple clients connecting to a server
@@ -49,7 +49,7 @@ Enter your unique name when prompted.
 
 ## Features Implemented
 - R1: System architecture with server and multiple clients
-- R2: Socket programming for chat messages
+- R2: Socket programming for chat messages (using Socket.IO)
 - R3: Unique client names
 - R4: List of connected clients
 - R5: Separate chat rooms for private and group messages
@@ -61,14 +61,15 @@ Enter your unique name when prompted.
 - R11: Group messaging
 
 ## Protocol
-Clients send commands to server:
-- LIST_CLIENTS
-- PRIVATE <recipient> <message>
-- CREATE_GROUP <group_name>
-- JOIN_GROUP <group_name>
-- LEAVE_GROUP <group_name>
-- LIST_GROUPS
-- GROUP_MESSAGE <group_name> <message>
-- QUIT
+Clients emit events to server:
+- join: with name
+- list_clients
+- private_message: {to, message}
+- create_group: {groupName}
+- join_group: {groupName}
+- leave_group: {groupName}
+- list_groups
+- group_message: {groupName, message}
+- disconnect
 
-Server responds with messages prefixed with appropriate indicators.
+Server emits events to clients accordingly.
