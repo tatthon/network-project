@@ -5,10 +5,10 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
-    "start:server": "node dist/server.js",
-    "start:client": "node dist/client.js",
+    "start:server": "node dist/server.ts",
+    "start:client": "node dist/client.ts",
     "dev:server": "ts-node src/server.ts",
-    "dev:client": "ts-node src/client.js"
+    "dev:client": "ts-node src/client.ts"
   },
   "dependencies": {
     "socket.io": "^4.7.0",
