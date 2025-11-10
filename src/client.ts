@@ -1,7 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import * as readline from 'readline';
 
-const HOST = 'http://localhost:3000';
+const HOST = process.env.SERVER_URL || 'http://localhost:3000';
 
 const rl = readline.createInterface({
     input: process.stdin,
