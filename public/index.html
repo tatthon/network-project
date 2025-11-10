@@ -47,6 +47,9 @@
 </head>
 <body>
     <h1>Multi-Client Chat Application</h1>
+    <div id="userInfo" style="display: none; margin-bottom: 10px;">
+        <strong>Logged in as: <span id="currentUser"></span></strong>
+    </div>
 
     <div id="login">
         <input type="text" id="nameInput" placeholder="Enter your name">
@@ -99,10 +102,12 @@
     <script>
         const socket = io();
         let currentChat = 'general';
+        let currentUser = '';
 
         function joinChat() {
             const name = document.getElementById('nameInput').value;
             if (name) {
+                currentUser = name;
                 socket.emit('join', name);
             }
         }
@@ -110,6 +115,8 @@
         socket.on('joined', () => {
             document.getElementById('login').style.display = 'none';
             document.getElementById('chat').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('currentUser').textContent = currentUser;
         });
 
         socket.on('name_taken', () => {
