@@ -1,16 +1,14 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const vite_1 = require("vite");
-const plugin_react_1 = __importDefault(require("@vitejs/plugin-react"));
-exports.default = (0, vite_1.defineConfig)({
-    plugins: [(0, plugin_react_1.default)()],
-    build: {
-        outDir: 'dist/public',
-        rollupOptions: {
-            input: 'src/page.tsx'
-        }
-    }
-});
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  root: path.resolve(__dirname, 'src/frontend'), // ให้ root เป็น folder frontend
+  build: {
+    outDir: path.resolve(__dirname, 'dist/frontend'), // output folder
+    rollupOptions: {
+      input: path.resolve(__dirname, 'src/frontend/main.tsx'), // entry point ของคุณ
+    },
+  },
+})

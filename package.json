@@ -10,8 +10,7 @@
     "start:server": "node dist/server.js",
     "start:client": "node dist/client.js",
     "dev:server": "ts-node src/server.ts",
-    "dev:client": "ts-node src/client.ts",
-    "dev": "vite"
+    "dev:client": "vite"
   },
   "dependencies": {
     "express": "^4.18.0",

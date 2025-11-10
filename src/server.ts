@@ -24,7 +24,6 @@ const io = new SocketIOServer(server, {
 });
 
 // Serve static files from public directory
-app.use(express.static(path.join(__dirname, 'public')));
 
 io.on('connection', (socket: any) => {
     console.log(`Client connected: ${socket.id}`);

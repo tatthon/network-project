@@ -10,7 +10,7 @@ interface Group {
   members: string[];
 }
 
-const App: React.FC = () => {
+function App(){
   const [socket, setSocket] = useState<Socket | null>(null);
   const [currentUser, setCurrentUser] = useState<string>('');
   const [nameInput, setNameInput] = useState<string>('');
@@ -257,7 +257,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-const container = document.getElementById('root');
-const root = createRoot(container!);
-root.render(<App />);
