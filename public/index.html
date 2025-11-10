@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #login {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #chat {
+            display: none;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #messageInput {
+            width: 70%;
+            padding: 5px;
+        }
+        button {
+            padding: 5px 10px;
+        }
+        #clients, #groups {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .private-chat, .group-chat {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Multi-Client Chat Application</h1>
+
+    <div id="login">
+        <input type="text" id="nameInput" placeholder="Enter your name">
+        <button onclick="joinChat()">Join Chat</button>
+    </div>
+
+    <div id="chat">
+        <div id="clients">
+            <h3>Connected Clients</h3>
+            <ul id="clientList"></ul>
+        </div>
+
+        <div id="groups">
+            <h3>Groups</h3>
+            <ul id="groupList"></ul>
+            <input type="text" id="groupNameInput" placeholder="Group name">
+            <button onclick="createGroup()">Create Group</button>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-tabs">
+                <button onclick="switchChat('general')">General</button>
+                <button onclick="switchChat('private')">Private</button>
+                <button onclick="switchChat('group')">Group</button>
+            </div>
+
+            <div id="general-chat" class="chat active">
+                <div id="messages"></div>
+                <input type="text" id="messageInput" placeholder="Type a message...">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+
+            <div id="private-chat" class="chat">
+                <select id="privateRecipient"></select>
+                <div id="privateMessages"></div>
+                <input type="text" id="privateMessageInput" placeholder="Private message...">
+                <button onclick="sendPrivateMessage()">Send Private</button>
+            </div>
+
+            <div id="group-chat" class="chat">
+                <select id="groupSelect"></select>
+                <div id="groupMessages"></div>
+                <input type="text" id="groupMessageInput" placeholder="Group message...">
+                <button onclick="sendGroupMessage()">Send to Group</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentChat = 'general';
+
+        function joinChat() {
+            const name = document.getElementById('nameInput').value;
+            if (name) {
+                socket.emit('join', name);
+            }
+        }
+
+        socket.on('joined', () => {
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('chat').style.display = 'block';
+        });
+
+        socket.on('name_taken', () => {
+            alert('Name already taken. Choose another name.');
+        });
+
+        socket.on('client_list', (clients) => {
+            const clientList = document.getElementById('clientList');
+            clientList.innerHTML = '';
+            clients.forEach(client => {
+                const li = document.createElement('li');
+                li.textContent = client;
+                clientList.appendChild(li);
+            });
+
+            // Update private recipient options
+            const privateRecipient = document.getElementById('privateRecipient');
+            privateRecipient.innerHTML = '';
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client;
+                option.textContent = client;
+                privateRecipient.appendChild(option);
+            });
+        });
+
+        socket.on('group_list', (groups) => {
+            const groupList = document.getElementById('groupList');
+            groupList.innerHTML = '';
+            const groupSelect = document.getElementById('groupSelect');
+            groupSelect.innerHTML = '';
+
+            groups.forEach(group => {
+                const li = document.createElement('li');
+                li.textContent = `${group.name}: ${group.members.join(', ')}`;
+                const joinBtn = document.createElement('button');
+                joinBtn.textContent = 'Join';
+                joinBtn.onclick = () => socket.emit('join_group', { groupName: group.name });
+                li.appendChild(joinBtn);
+                groupList.appendChild(li);
+
+                const option = document.createElement('option');
+                option.value = group.name;
+                option.textContent = group.name;
+                groupSelect.appendChild(option);
+            });
+        });
+
+        socket.on('user_joined', (name) => {
+            addMessage(`${name} joined the chat`);
+        });
+
+        socket.on('user_left', (name) => {
+            addMessage(`${name} left the chat`);
+        });
+
+        socket.on('private_message', (data) => {
+            addPrivateMessage(`From ${data.from}: ${data.message}`);
+        });
+
+        socket.on('private_message_sent', (data) => {
+            addPrivateMessage(`To ${data.to}: ${data.message}`);
+        });
+
+        socket.on('group_message', (data) => {
+            addGroupMessage(`${data.from}: ${data.message}`, data.groupName);
+        });
+
+        socket.on('group_message_sent', (data) => {
+            addGroupMessage(`You: ${data.message}`, data.groupName);
+        });
+
+        socket.on('broadcast_message', (data) => {
+            addMessage(`${data.from}: ${data.message}`);
+        });
+
+        function switchChat(chatType) {
+            document.querySelectorAll('.chat').forEach(chat => chat.classList.remove('active'));
+            document.getElementById(chatType + '-chat').classList.add('active');
+            currentChat = chatType;
+        }
+
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+            if (message) {
+                socket.emit('broadcast', message);
+                document.getElementById('messageInput').value = '';
+            }
+        }
+
+        function sendPrivateMessage() {
+            const to = document.getElementById('privateRecipient').value;
+            const message = document.getElementById('privateMessageInput').value;
+            if (to && message) {
+                socket.emit('private_message', { to, message });
+                document.getElementById('privateMessageInput').value = '';
+            }
+        }
+
+        function sendGroupMessage() {
+            const groupName = document.getElementById('groupSelect').value;
+            const message = document.getElementById('groupMessageInput').value;
+            if (groupName && message) {
+                socket.emit('group_message', { groupName, message });
+                document.getElementById('groupMessageInput').value = '';
+            }
+        }
+
+        function createGroup() {
+            const groupName = document.getElementById('groupNameInput').value;
+            if (groupName) {
+                socket.emit('create_group', { groupName });
+                document.getElementById('groupNameInput').value = '';
+            }
+        }
+
+        function addMessage(message) {
+            const messages = document.getElementById('messages');
+            const p = document.createElement('p');
+            p.textContent = message;
+            messages.appendChild(p);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addPrivateMessage(message) {
+            const messages = document.getElementById('privateMessages');
+            const p = document.createElement('p');
+            p.textContent = message;
+            messages.appendChild(p);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addGroupMessage(message, groupName) {
+            const messages = document.getElementById('groupMessages');
+            const p = document.createElement('p');
+            p.textContent = `[${groupName}] ${message}`;
+            messages.appendChild(p);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Allow sending messages with Enter key
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+        document.getElementById('privateMessageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendPrivateMessage();
+        });
+        document.getElementById('groupMessageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendGroupMessage();
+        });
+    </script>
+</body>
+</html>

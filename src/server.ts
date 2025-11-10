@@ -1,5 +1,7 @@
-import * as http from 'http';
-import { Server as SocketIOServer } from 'socket.io';
+const express = require('express');
+const http = require('http');
+const { Server: SocketIOServer } = require('socket.io');
+const path = require('path');
 
 const PORT = 3000;
 
@@ -12,7 +14,8 @@ const clients: Map<string, string> = new Map(); // name to socket.id
 const sockets: Map<string, any> = new Map(); // socket.id to socket
 const groups: Map<string, Group> = new Map();
 
-const server = http.createServer();
+const app = express();
+const server = http.createServer(app);
 const io = new SocketIOServer(server, {
     cors: {
         origin: "*",
@@ -20,7 +23,10 @@ const io = new SocketIOServer(server, {
     }
 });
 
-io.on('connection', (socket) => {
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, '../public')));
+
+io.on('connection', (socket: any) => {
     console.log(`Client connected: ${socket.id}`);
     sockets.set(socket.id, socket);
 
@@ -126,16 +132,10 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('disconnect', () => {
-        const name = socket.data.name;
-        if (name) {
-            clients.delete(name);
-            sockets.delete(socket.id);
-            socket.broadcast.emit('user_left', name);
-            sendClientList();
-            sendGroupList();
-        }
-        console.log(`Client disconnected: ${socket.id}`);
+    socket.on('broadcast', (message: string) => {
+        const sender = socket.data.name;
+        socket.broadcast.emit('broadcast_message', { from: sender, message });
+        socket.emit('broadcast_message', { from: 'You', message });
     });
 });
 
