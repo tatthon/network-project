@@ -127,7 +127,7 @@ function App(){
   if (!joined) {
     return (
       <div style={{ textAlign: 'center', marginTop: '50px' }}>
-        <h1>Multi-Client Chat Application</h1>
+        <h1 className = "bg-red-600">Multi-Client Chat Application</h1>
         <div>
           <input
             type="text"
