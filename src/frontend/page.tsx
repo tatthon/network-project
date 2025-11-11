@@ -126,133 +126,211 @@ function App(){
 
   if (!joined) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '50px' }}>
-        <h1 className = "bg-red-600">Multi-Client Chat Application</h1>
-        <div>
-          <input
-            type="text"
-            placeholder="Enter your name"
-            value={nameInput}
-            onChange={(e) => setNameInput(e.target.value)}
-          />
-          <button onClick={joinChat}>Join Chat</button>
-        </div>
-      </div>
-    );
-  }
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <h1 className="text-4xl font-bold text-white bg-blue-400 px-6 py-4 rounded-lg shadow-md mb-8">
+          Multi-Client Chat Application
+      </h1>
+
+    <div className="flex flex-col sm:flex-row items-center gap-4">
+      <input
+        type="text"
+        placeholder="Enter your name"
+        value={nameInput}
+        onChange={(e) => setNameInput(e.target.value)}
+        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+      />
+    <button
+      onClick={joinChat}
+      className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg shadow hover:bg-red-700 transition duration-200"
+    >
+      Join Chat
+    </button>
+  </div>
+</div>
+    )
+}
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-      <h1>Multi-Client Chat Application</h1>
-      <div style={{ marginBottom: '10px' }}>
-        <strong>Logged in as: {currentUser}</strong>
-      </div>
+   <div className="max-w-4xl mx-auto p-6 bg-gray-50 rounded-lg shadow-md">
+  <h1 className="text-3xl font-bold text-center mb-6 text-red-600">
+    Multi-Client Chat Application
+  </h1>
 
-      <div style={{ display: 'flex', marginBottom: '20px' }}>
-        <div style={{ flex: 1, marginRight: '20px' }}>
-          <h3>Connected Clients</h3>
-          <ul>
-            {clients.map(client => (
-              <li key={client}>{client}</li>
-            ))}
-          </ul>
-        </div>
+  <div className="mb-4 text-center">
+    <strong>Logged in as: {currentUser}</strong>
+  </div>
 
-        <div style={{ flex: 1 }}>
-          <h3>Groups</h3>
-          <div style={{ marginBottom: '10px' }}>
-            <input
-              type="text"
-              placeholder="Group name"
-              value={groupNameInput}
-              onChange={(e) => setGroupNameInput(e.target.value)}
-            />
-            <button onClick={createGroup}>Create Group</button>
-          </div>
-          <ul>
-            {groups.map(group => (
-              <li key={group.name}>
-                {group.name}: {group.members.join(', ')}
-                <button onClick={() => joinGroup(group.name)} style={{ marginLeft: '10px' }}>
-                  Join
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div>
-        <div style={{ marginBottom: '10px' }}>
-          <button onClick={() => setCurrentChat('general')}>General</button>
-          <button onClick={() => setCurrentChat('private')}>Private</button>
-          <button onClick={() => setCurrentChat('group')}>Group</button>
-        </div>
-
-        {currentChat === 'general' && (
-          <div>
-            <div style={{ border: '1px solid #ccc', height: '300px', overflowY: 'auto', padding: '10px', marginBottom: '10px' }}>
-              {messages.map((msg, idx) => <p key={idx}>{msg}</p>)}
-            </div>
-            <input
-              type="text"
-              placeholder="Type a message..."
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              style={{ width: '70%', padding: '5px' }}
-            />
-            <button onClick={sendMessage}>Send</button>
-          </div>
-        )}
-
-        {currentChat === 'private' && (
-          <div>
-            <select value={privateRecipient} onChange={(e) => setPrivateRecipient(e.target.value)}>
-              <option value="">Select recipient</option>
-              {clients.map(client => (
-                <option key={client} value={client}>{client}</option>
-              ))}
-            </select>
-            <div style={{ border: '1px solid #ccc', height: '300px', overflowY: 'auto', padding: '10px', marginBottom: '10px' }}>
-              {privateMessages.map((msg, idx) => <p key={idx}>{msg}</p>)}
-            </div>
-            <input
-              type="text"
-              placeholder="Private message..."
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendPrivateMessage()}
-              style={{ width: '70%', padding: '5px' }}
-            />
-            <button onClick={sendPrivateMessage}>Send Private</button>
-          </div>
-        )}
-
-        {currentChat === 'group' && (
-          <div>
-            <select value={groupSelect} onChange={(e) => setGroupSelect(e.target.value)}>
-              <option value="">Select group</option>
-              {groups.map(group => (
-                <option key={group.name} value={group.name}>{group.name}</option>
-              ))}
-            </select>
-            <div style={{ border: '1px solid #ccc', height: '300px', overflowY: 'auto', padding: '10px', marginBottom: '10px' }}>
-              {groupMessages.map((msg, idx) => <p key={idx}>{msg}</p>)}
-            </div>
-            <input
-              type="text"
-              placeholder="Group message..."
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendGroupMessage()}
-              style={{ width: '70%', padding: '5px' }}
-            />
-            <button onClick={sendGroupMessage}>Send to Group</button>
-          </div>
-        )}
-      </div>
+  <div className="flex flex-col md:flex-row gap-6 mb-6">
+    {/* Connected Clients */}
+    <div className="flex-1 bg-white p-4 rounded-lg shadow">
+      <h3 className="text-xl font-semibold mb-2">Connected Clients</h3>
+      <ul className="list-disc list-inside">
+        {clients.map(client => (
+          <li key={client}>{client}</li>
+        ))}
+      </ul>
     </div>
+
+    {/* Groups */}
+    <div className="flex-1 bg-white p-4 rounded-lg shadow">
+      <h3 className="text-xl font-semibold mb-2">Groups</h3>
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Group name"
+          value={groupNameInput}
+          onChange={(e) => setGroupNameInput(e.target.value)}
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+        />
+        <button
+          onClick={createGroup}
+          className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow hover:bg-red-700 transition"
+        >
+          Create Group
+        </button>
+      </div>
+      <ul className="list-disc list-inside">
+        {groups.map(group => (
+          <li key={group.name} className="flex justify-between items-center mb-1">
+            <span>{group.name}: {group.members.join(', ')}</span>
+            <button
+              onClick={() => joinGroup(group.name)}
+              className="ml-2 px-2 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition"
+            >
+              Join
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  {/* Chat Section */}
+  <div>
+    <div className="flex gap-2 mb-4 justify-center">
+      <button
+        onClick={() => setCurrentChat('general')}
+        className={`px-4 py-2 rounded-lg font-semibold transition ${
+          currentChat === 'general' ? 'bg-red-600 text-white' : 'bg-gray-200 hover:bg-gray-300'
+        }`}
+      >
+        General
+      </button>
+      <button
+        onClick={() => setCurrentChat('private')}
+        className={`px-4 py-2 rounded-lg font-semibold transition ${
+          currentChat === 'private' ? 'bg-red-600 text-white' : 'bg-gray-200 hover:bg-gray-300'
+        }`}
+      >
+        Private
+      </button>
+      <button
+        onClick={() => setCurrentChat('group')}
+        className={`px-4 py-2 rounded-lg font-semibold transition ${
+          currentChat === 'group' ? 'bg-red-600 text-white' : 'bg-gray-200 hover:bg-gray-300'
+        }`}
+      >
+        Group
+      </button>
+    </div>
+
+    {/* General Chat */}
+    {currentChat === 'general' && (
+      <div>
+        <div className="border border-gray-300 h-72 overflow-y-auto p-3 mb-2 bg-white rounded-lg shadow">
+          {messages.map((msg, idx) => <p key={idx}>{msg}</p>)}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          />
+          <button
+            onClick={sendMessage}
+            className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow hover:bg-red-700 transition"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    )}
+
+    {/* Private Chat */}
+    {currentChat === 'private' && (
+      <div>
+        <select
+          value={privateRecipient}
+          onChange={(e) => setPrivateRecipient(e.target.value)}
+          className="mb-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 w-full"
+        >
+          <option value="">Select recipient</option>
+          {clients.map(client => (
+            <option key={client} value={client}>{client}</option>
+          ))}
+        </select>
+        <div className="border border-gray-300 h-72 overflow-y-auto p-3 mb-2 bg-white rounded-lg shadow">
+          {privateMessages.map((msg, idx) => <p key={idx}>{msg}</p>)}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Private message..."
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && sendPrivateMessage()}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          />
+          <button
+            onClick={sendPrivateMessage}
+            className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow hover:bg-red-700 transition"
+          >
+            Send Private
+          </button>
+        </div>
+      </div>
+    )}
+
+    {/* Group Chat */}
+    {currentChat === 'group' && (
+      <div>
+        <select
+          value={groupSelect}
+          onChange={(e) => setGroupSelect(e.target.value)}
+          className="mb-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 w-full"
+        >
+          <option value="">Select group</option>
+          {groups.map(group => (
+            <option key={group.name} value={group.name}>{group.name}</option>
+          ))}
+        </select>
+        <div className="border border-gray-300 h-72 overflow-y-auto p-3 mb-2 bg-white rounded-lg shadow">
+          {groupMessages.map((msg, idx) => <p key={idx}>{msg}</p>)}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Group message..."
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && sendGroupMessage()}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          />
+          <button
+            onClick={sendGroupMessage}
+            className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow hover:bg-red-700 transition"
+          >
+            Send to Group
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
   );
 };
 
