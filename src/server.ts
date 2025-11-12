@@ -9,7 +9,6 @@ interface Group {
     creator: string;
     members: Set<string>;
 }
-
 const clients: Map<string, string> = new Map(); // name to socket.id
 const sockets: Map<string, any> = new Map(); // socket.id to socket
 const groups: Map<string, Group> = new Map();
@@ -32,7 +31,6 @@ io.on('connection', (socket: any) => {
     socket.on('join', (name: string) => {
         if (clients.has(name)) {
             socket.emit('name_taken');
-            socket.disconnect();
             return;
         }
         clients.set(name, socket.id);
@@ -55,8 +53,8 @@ io.on('connection', (socket: any) => {
             const toSocketId = clients.get(to)!;
             const toSocket = sockets.get(toSocketId);
             if (toSocket) {
-                toSocket.emit('private_message', { from: sender, message });
                 socket.emit('private_message_sent', { to, message });
+                toSocket.emit('private_message', { from: sender, message });
             }
         } else {
             socket.emit('error', 'Recipient not found');
