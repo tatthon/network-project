@@ -45,8 +45,17 @@ io.on('connection', (socket: any) => {
         if (name && clients.has(name)) {
             clients.delete(name);
             sockets.delete(socket.id);
+            groups.forEach((group, groupName) => {
+            if (group.members.has(name)) {
+                group.members.delete(name);
+                if (group.members.size === 0) {
+                    groups.delete(groupName);
+                }
+            }
+        });
             io.emit('user_left', name); // แจ้ง client อื่น
             sendClientList();
+            sendGroupList();
             console.log(`${name} disconnected (${reason})`);
         }
     });
@@ -148,7 +157,6 @@ io.on('connection', (socket: any) => {
     socket.on('read_group_message' , (data : {groupName : string , reader : string}) => {
         const {groupName , reader} = data;
         const group = groups.get(groupName);
-        console.log(`${reader} , ${groupName}`);
         if (group) {
             group.members.forEach(member => {
                 if (member !== reader) {
@@ -156,7 +164,7 @@ io.on('connection', (socket: any) => {
                     if (memberSocketId) {
                         const memberSocket = sockets.get(memberSocketId);
                         if (memberSocket) {
-                            memberSocket.emit('group_message_read', { groupName});
+                            memberSocket.emit('group_message_read', { groupName : groupName , reader : reader});
                         }
                     }
                 }
