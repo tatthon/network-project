@@ -40,6 +40,16 @@ io.on('connection', (socket: any) => {
         sendClientList();
         sendGroupList();
     });
+     socket.on('disconnect', (reason : any) => {
+        const name = socket.data.name;
+        if (name && clients.has(name)) {
+            clients.delete(name);
+            sockets.delete(socket.id);
+            io.emit('user_left', name); // แจ้ง client อื่น
+            sendClientList();
+            console.log(`${name} disconnected (${reason})`);
+        }
+    });
 
     socket.on('list_clients', () => {
         const clientList = Array.from(clients.keys());
@@ -60,7 +70,14 @@ io.on('connection', (socket: any) => {
             socket.emit('error', 'Recipient not found');
         }
     });
-
+    socket.on('read_private_message', (data : {reader : string,sender : string}) => {
+        const {reader,sender} = data;
+        if(clients.has(sender)){
+            const senderSocketID = clients.get(sender)!;
+            const senderSocket = sockets.get(senderSocketID);
+            senderSocket.emit('private_message_read' , {reader : reader});
+        }
+    });
     socket.on('create_group', (data: { groupName: string }) => {
         const { groupName } = data;
         const creator = socket.data.name;
@@ -128,7 +145,24 @@ io.on('connection', (socket: any) => {
             socket.emit('error', 'Not in group or group not found');
         }
     });
-
+    socket.on('read_group_message' , (data : {groupName : string , reader : string}) => {
+        const {groupName , reader} = data;
+        const group = groups.get(groupName);
+        console.log(`${reader} , ${groupName}`);
+        if (group) {
+            group.members.forEach(member => {
+                if (member !== reader) {
+                    const memberSocketId = clients.get(member);
+                    if (memberSocketId) {
+                        const memberSocket = sockets.get(memberSocketId);
+                        if (memberSocket) {
+                            memberSocket.emit('group_message_read', { groupName});
+                        }
+                    }
+                }
+            });
+        }
+    });
     socket.on('broadcast', (message: string) => {
         const sender = socket.data.name;
         socket.broadcast.emit('broadcast_message', { from: sender, message });
