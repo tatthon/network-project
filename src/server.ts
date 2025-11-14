@@ -9,7 +9,6 @@ interface Group {
     creator: string;
     members: Set<string>;
 }
-
 const clients: Map<string, string> = new Map(); // name to socket.id
 const sockets: Map<string, any> = new Map(); // socket.id to socket
 const groups: Map<string, Group> = new Map();
@@ -32,7 +31,6 @@ io.on('connection', (socket: any) => {
     socket.on('join', (name: string) => {
         if (clients.has(name)) {
             socket.emit('name_taken');
-            socket.disconnect();
             return;
         }
         clients.set(name, socket.id);
@@ -41,6 +39,25 @@ io.on('connection', (socket: any) => {
         socket.broadcast.emit('user_joined', name);
         sendClientList();
         sendGroupList();
+    });
+     socket.on('disconnect', (reason : any) => {
+        const name = socket.data.name;
+        if (name && clients.has(name)) {
+            clients.delete(name);
+            sockets.delete(socket.id);
+            groups.forEach((group, groupName) => {
+            if (group.members.has(name)) {
+                group.members.delete(name);
+                if (group.members.size === 0) {
+                    groups.delete(groupName);
+                }
+            }
+        });
+            io.emit('user_left', name); // แจ้ง client อื่น
+            sendClientList();
+            sendGroupList();
+            console.log(`${name} disconnected (${reason})`);
+        }
     });
 
     socket.on('list_clients', () => {
@@ -55,14 +72,21 @@ io.on('connection', (socket: any) => {
             const toSocketId = clients.get(to)!;
             const toSocket = sockets.get(toSocketId);
             if (toSocket) {
-                toSocket.emit('private_message', { from: sender, message });
                 socket.emit('private_message_sent', { to, message });
+                toSocket.emit('private_message', { from: sender, message });
             }
         } else {
             socket.emit('error', 'Recipient not found');
         }
     });
-
+    socket.on('read_private_message', (data : {reader : string,sender : string}) => {
+        const {reader,sender} = data;
+        if(clients.has(sender)){
+            const senderSocketID = clients.get(sender)!;
+            const senderSocket = sockets.get(senderSocketID);
+            senderSocket.emit('private_message_read' , {reader : reader});
+        }
+    });
     socket.on('create_group', (data: { groupName: string }) => {
         const { groupName } = data;
         const creator = socket.data.name;
@@ -130,7 +154,23 @@ io.on('connection', (socket: any) => {
             socket.emit('error', 'Not in group or group not found');
         }
     });
-
+    socket.on('read_group_message' , (data : {groupName : string , reader : string}) => {
+        const {groupName , reader} = data;
+        const group = groups.get(groupName);
+        if (group) {
+            group.members.forEach(member => {
+                if (member !== reader) {
+                    const memberSocketId = clients.get(member);
+                    if (memberSocketId) {
+                        const memberSocket = sockets.get(memberSocketId);
+                        if (memberSocket) {
+                            memberSocket.emit('group_message_read', { groupName : groupName , reader : reader});
+                        }
+                    }
+                }
+            });
+        }
+    });
     socket.on('broadcast', (message: string) => {
         const sender = socket.data.name;
         socket.broadcast.emit('broadcast_message', { from: sender, message });
