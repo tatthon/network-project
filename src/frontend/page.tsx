@@ -3,6 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import './App.css';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 
+// เปลี่ยนตรงนี้
 const HOST = 'http://localhost:3000';
 
 // ===== INTERFACES =====
@@ -256,12 +257,12 @@ function App() {
         {/* === Group Chat === */}
         {currentChat === 'group' && (
           <div>
-  <GroupMessageScreen
-    scrollRef={scrollRef}
-    groupMessages={groupMessages}
-    groupSelect={groupSelect}
-    currentUser={currentUser}
-  />
+            <GroupMessageScreen
+              scrollRef={scrollRef}
+              groupMessages={groupMessages}
+              groupSelect={groupSelect}
+              currentUser={currentUser}
+            />
 
       {/* Input + Emoji */}
         <MessageInput

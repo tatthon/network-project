@@ -1,5 +1,5 @@
 import {Group} from '../../types/';
-interface SidebarProps {
+interface LeftSidebarProps {
   clients: string[];
   currentUser: string;
   privateRecipient: string;
@@ -9,7 +9,7 @@ interface SidebarProps {
   onSelectGroup: (group: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   clients,
   currentUser,
   privateRecipient,
