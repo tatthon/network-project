@@ -51,12 +51,13 @@ io.on('connection', (socket: any) => {
     socket.on('private_message', (data: { to: string; message: string }) => {
         const { to, message } = data;
         const sender = socket.data.name;
+        const timestamp = Date.now();
         if (clients.has(to)) {
             const toSocketId = clients.get(to)!;
             const toSocket = sockets.get(toSocketId);
             if (toSocket) {
-                toSocket.emit('private_message', { from: sender, message });
-                socket.emit('private_message_sent', { to, message });
+                toSocket.emit('private_message', { from: sender, message, timestamp });
+                socket.emit('private_message_sent', { to, message, timestamp });
             }
         } else {
             socket.emit('error', 'Recipient not found');
@@ -112,6 +113,7 @@ io.on('connection', (socket: any) => {
     socket.on('group_message', (data: { groupName: string; message: string }) => {
         const { groupName, message } = data;
         const sender = socket.data.name;
+        const timestamp = Date.now();
         const group = groups.get(groupName);
         if (group && group.members.has(sender)) {
             group.members.forEach(member => {
@@ -120,21 +122,22 @@ io.on('connection', (socket: any) => {
                     if (memberSocketId) {
                         const memberSocket = sockets.get(memberSocketId);
                         if (memberSocket) {
-                            memberSocket.emit('group_message', { groupName, from: sender, message });
+                            memberSocket.emit('group_message', { groupName, from: sender, message, timestamp });
                         }
                     }
                 }
             });
-            socket.emit('group_message_sent', { groupName, message });
+            socket.emit('group_message_sent', { groupName, message, timestamp });
         } else {
             socket.emit('error', 'Not in group or group not found');
         }
     });
 
     socket.on('broadcast', (message: string) => {
-        const sender = socket.data.name;
-        socket.broadcast.emit('broadcast_message', { from: sender, message });
-        socket.emit('broadcast_message', { from: 'You', message });
+    const sender = socket.data.name;
+    const timestamp = Date.now();
+    socket.broadcast.emit('broadcast_message', { from: sender, message, timestamp });
+    socket.emit('broadcast_message', { from: 'You', message, timestamp });
     });
 });
 

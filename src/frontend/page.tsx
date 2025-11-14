@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import './App.css';
 
+
 const HOST = 'http://localhost:3000';
+
+function formatTimeHHMM(timestamp: number): string {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+}
 
 interface Group {
   name: string;
@@ -40,9 +46,9 @@ function App() {
   const [currentChat, setCurrentChat] = useState<'general' | 'private' | 'group'>('general');
   const [clients, setClients] = useState<string[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [messages, setMessages] = useState<string[]>([]);
-  const [privateMessages, setPrivateMessages] = useState<string[]>([]);
-  const [groupMessages, setGroupMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<{text: string, timestamp: number}[]>([]);
+  const [privateMessages, setPrivateMessages] = useState<{text: string, timestamp: number}[]>([]);
+  const [groupMessages, setGroupMessages] = useState<{text: string, timestamp: number}[]>([]);
   const [messageInput, setMessageInput] = useState<string>('');
   const [privateRecipient, setPrivateRecipient] = useState<string>('');
   const [groupSelect, setGroupSelect] = useState<string>('');
@@ -73,31 +79,31 @@ function App() {
     });
 
     newSocket.on('user_joined', (name: string) => {
-      setMessages(prev => [...prev, `${name} joined the chat`]);
+      setMessages(prev => [...prev, { text: `${name} joined the chat`, timestamp: Date.now() }]);
     });
 
     newSocket.on('user_left', (name: string) => {
-      setMessages(prev => [...prev, `${name} left the chat`]);
+      setMessages(prev => [...prev, { text: `${name} left the chat`, timestamp: Date.now() }]);
     });
 
-    newSocket.on('broadcast_message', (data: { from: string; message: string }) => {
-      setMessages(prev => [...prev, `${data.from}: ${data.message}`]);
+    newSocket.on('broadcast_message', (data: { from: string; message: string; timestamp?: number }) => {
+      setMessages(prev => [...prev, { text: `${data.from}: ${data.message}`, timestamp: data.timestamp || Date.now() }]);
     });
 
-    newSocket.on('private_message', (data: { from: string; message: string }) => {
-      setPrivateMessages(prev => [...prev, `From ${data.from}: ${data.message}`]);
+    newSocket.on('private_message', (data: { from: string; message: string; timestamp?: number }) => {
+      setPrivateMessages(prev => [...prev, { text: `From ${data.from}: ${data.message}`, timestamp: data.timestamp || Date.now() }]);
     });
 
-    newSocket.on('private_message_sent', (data: { to: string; message: string }) => {
-      setPrivateMessages(prev => [...prev, `To ${data.to}: ${data.message}`]);
+    newSocket.on('private_message_sent', (data: { to: string; message: string; timestamp?: number }) => {
+      setPrivateMessages(prev => [...prev, { text: `To ${data.to}: ${data.message}`, timestamp: data.timestamp || Date.now() }]);
     });
 
-    newSocket.on('group_message', (data: { groupName: string; from: string; message: string }) => {
-      setGroupMessages(prev => [...prev, `[${data.groupName}] ${data.from}: ${data.message}`]);
+    newSocket.on('group_message', (data: { groupName: string; from: string; message: string; timestamp?: number }) => {
+      setGroupMessages(prev => [...prev, { text: `[${data.groupName}] ${data.from}: ${data.message}`, timestamp: data.timestamp || Date.now() }]);
     });
 
-    newSocket.on('group_message_sent', (data: { groupName: string; message: string }) => {
-      setGroupMessages(prev => [...prev, `[${data.groupName}] You: ${data.message}`]);
+    newSocket.on('group_message_sent', (data: { groupName: string; message: string; timestamp?: number }) => {
+      setGroupMessages(prev => [...prev, { text: `[${data.groupName}] You: ${data.message}`, timestamp: data.timestamp || Date.now() }]);
     });
 
     newSocket.on('error', (message: string) => {
@@ -344,17 +350,17 @@ function App() {
               <div className="flex-1 overflow-y-auto space-y-2 p-2 bg-white/90 rounded-xl shadow-inner border border-gray-200 mb-2">
                 {messages.map((msg, idx) => {
                   // System message if it ends with 'joined the chat' or 'left the chat'
-                  if (/ (joined|left) the chat$/.test(msg)) {
+                  if (/ (joined|left) the chat$/.test(msg.text)) {
                     return (
                       <div key={idx} className="flex justify-center my-2">
-                        <span className="text-xs text-gray-400 text-center">{msg}</span>
+                        <span className="text-xs text-gray-400 text-center">{msg.text}</span>
                       </div>
                     );
                   }
-                  const isOwn = msg.startsWith(currentUser + ':') || msg.startsWith('You:');
+                  const isOwn = msg.text.startsWith(currentUser + ':') || msg.text.startsWith('You:');
                   let sender = '';
-                  if (msg.includes(':')) {
-                    sender = msg.split(':')[0].replace('You', currentUser).trim();
+                  if (msg.text.includes(':')) {
+                    sender = msg.text.split(':')[0].replace('You', currentUser).trim();
                   }
                   return (
                     <div key={idx} className={`flex flex-col items-${isOwn ? 'end' : 'start'} gap-0.5`}>
@@ -370,20 +376,32 @@ function App() {
                             {sender.charAt(0).toUpperCase()}
                           </div>
                         )}
-                        <div
-                          className={`max-w-xs px-4 py-2 rounded-2xl shadow text-sm whitespace-pre-line ${
-                            isOwn
-                              ? 'bg-gradient-to-br from-pink-400 to-red-400 text-white rounded-br-none'
-                              : 'bg-gray-200 text-gray-800 rounded-bl-none'
-                          }`}
-                        >
-                          {(() => {
-                            // Always show only the message content after the first colon, or the whole string if no colon
-                            const afterColon = msg.indexOf(':');
-                            if (afterColon !== -1) return msg.slice(afterColon + 1).trimStart();
-                            return msg;
-                          })()}
-                        </div>
+                        {isOwn
+                          ? <>
+                              <span className="text-[10px] text-gray-400 mr-0.5 align-bottom" style={{marginBottom: '1px'}}>{formatTimeHHMM(msg.timestamp)}</span>
+                              <div
+                                className={`max-w-xs px-4 py-2 rounded-2xl shadow text-sm whitespace-pre-line bg-gradient-to-br from-pink-400 to-red-400 text-white rounded-br-none`}
+                              >
+                                {(() => {
+                                  const afterColon = msg.text.indexOf(':');
+                                  if (afterColon !== -1) return msg.text.slice(afterColon + 1).trimStart();
+                                  return msg.text;
+                                })()}
+                              </div>
+                            </>
+                          : <>
+                              <div
+                                className={`max-w-xs px-4 py-2 rounded-2xl shadow text-sm whitespace-pre-line bg-gray-200 text-gray-800 rounded-bl-none`}
+                              >
+                                {(() => {
+                                  const afterColon = msg.text.indexOf(':');
+                                  if (afterColon !== -1) return msg.text.slice(afterColon + 1).trimStart();
+                                  return msg.text;
+                                })()}
+                              </div>
+                              <span className="text-[10px] text-gray-400 ml-0.5 align-bottom" style={{marginBottom: '1px'}}>{formatTimeHHMM(msg.timestamp)}</span>
+                            </>
+                        }
                         {isOwn && (
                           <div
                             className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-base shadow"
@@ -431,21 +449,18 @@ function App() {
               <div className="flex-1 overflow-y-auto space-y-2 p-2 bg-white/90 rounded-xl shadow-inner border border-gray-200 mb-2">
                 {privateMessages
                   .filter((msg) => {
-                    // Only show messages between currentUser and privateRecipient
                     if (!privateRecipient) return false;
-                    // Sent by me to them
-                    if (msg.startsWith(`To ${privateRecipient}:`)) return true;
-                    // Sent by them to me
-                    if (msg.startsWith(`From ${privateRecipient}:`)) return true;
+                    if (msg.text.startsWith(`To ${privateRecipient}:`)) return true;
+                    if (msg.text.startsWith(`From ${privateRecipient}:`)) return true;
                     return false;
                   })
                   .map((msg, idx) => {
-                    const isOwn = msg.startsWith('To ');
+                    const isOwn = msg.text.startsWith('To ');
                     let sender = '';
                     if (isOwn) {
                       sender = currentUser;
-                    } else if (msg.startsWith('From ')) {
-                      sender = msg.split(':')[0].replace('From ', '').trim();
+                    } else if (msg.text.startsWith('From ')) {
+                      sender = msg.text.split(':')[0].replace('From ', '').trim();
                     }
                     return (
                       <div key={idx} className={`flex flex-col items-${isOwn ? 'end' : 'start'} gap-0.5`}>
@@ -461,20 +476,32 @@ function App() {
                               {sender.charAt(0).toUpperCase()}
                             </div>
                           )}
-                          <div
-                            className={`max-w-xs px-4 py-2 rounded-2xl shadow text-sm whitespace-pre-line ${
-                              isOwn
-                                ? 'bg-gradient-to-br from-pink-400 to-red-400 text-white rounded-br-none'
-                                : 'bg-gray-200 text-gray-800 rounded-bl-none'
-                            }`}
-                          >
-                            {(() => {
-                              // Always show only the message content after the first colon, or the whole string if no colon
-                              const afterColon = msg.indexOf(':');
-                              if (afterColon !== -1) return msg.slice(afterColon + 1).trimStart();
-                              return msg;
-                            })()}
-                          </div>
+                          {isOwn
+                              ? <>
+                                  <span className="text-[10px] text-gray-400 mr-0.5 align-bottom" style={{marginBottom: '1px'}}>{formatTimeHHMM(msg.timestamp)}</span>
+                                  <div
+                                    className={`max-w-xs px-4 py-2 rounded-2xl shadow text-sm whitespace-pre-line bg-gradient-to-br from-pink-400 to-red-400 text-white rounded-br-none`}
+                                  >
+                                    {(() => {
+                                      const afterColon = msg.text.indexOf(':');
+                                      if (afterColon !== -1) return msg.text.slice(afterColon + 1).trimStart();
+                                      return msg.text;
+                                    })()}
+                                  </div>
+                                </>
+                              : <>
+                                  <div
+                                    className={`max-w-xs px-4 py-2 rounded-2xl shadow text-sm whitespace-pre-line bg-gray-200 text-gray-800 rounded-bl-none`}
+                                  >
+                                    {(() => {
+                                      const afterColon = msg.text.indexOf(':');
+                                      if (afterColon !== -1) return msg.text.slice(afterColon + 1).trimStart();
+                                      return msg.text;
+                                    })()}
+                                  </div>
+                                  <span className="text-[10px] text-gray-400 ml-0.5 align-bottom" style={{marginBottom: '1px'}}>{formatTimeHHMM(msg.timestamp)}</span>
+                                </>
+                          }
                           {isOwn && (
                             <div
                               className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-base shadow"
@@ -548,17 +575,15 @@ function App() {
                     </div>
                     <div className="flex-1 overflow-y-auto space-y-2 p-2 bg-white/90 rounded-xl shadow-inner border border-gray-200 mb-2">
                       {groupMessages.map((msg, idx) => {
-                        const isOwn = msg.includes('You:');
+                        const isOwn = msg.text.includes('You:');
                         let sender = '';
-                        let messageText = msg;
+                        let messageText = msg.text;
                         if (isOwn) {
                           sender = currentUser;
-                          // Format: [group] You: message
-                          const afterColon = msg.indexOf(':');
-                          if (afterColon !== -1) messageText = msg.slice(afterColon + 1).trimStart();
-                        } else if (msg.includes(']')) {
-                          // Format: [group] sender: message
-                          const afterBracket = msg.split(']')[1];
+                          const afterColon = msg.text.indexOf(':');
+                          if (afterColon !== -1) messageText = msg.text.slice(afterColon + 1).trimStart();
+                        } else if (msg.text.includes(']')) {
+                          const afterBracket = msg.text.split(']')[1];
                           if (afterBracket && afterBracket.includes(':')) {
                             sender = afterBracket.split(':')[0].trim();
                             messageText = afterBracket.split(':').slice(1).join(':').trimStart();
@@ -578,15 +603,24 @@ function App() {
                                   {sender.charAt(0).toUpperCase()}
                                 </div>
                               )}
-                              <div
-                                className={`max-w-xs px-4 py-2 rounded-2xl shadow text-sm whitespace-pre-line ${
-                                  isOwn
-                                    ? 'bg-gradient-to-br from-pink-400 to-red-400 text-white rounded-br-none'
-                                    : 'bg-gray-200 text-gray-800 rounded-bl-none'
-                                }`}
-                              >
-                                {messageText}
-                              </div>
+                              {isOwn
+                                ? <>
+                                    <span className="text-[10px] text-gray-400 mr-0.5 align-bottom" style={{marginBottom: '1px'}}>{formatTimeHHMM(msg.timestamp)}</span>
+                                    <div
+                                      className={`max-w-xs px-4 py-2 rounded-2xl shadow text-sm whitespace-pre-line bg-gradient-to-br from-pink-400 to-red-400 text-white rounded-br-none`}
+                                    >
+                                      {messageText}
+                                    </div>
+                                  </>
+                                : <>
+                                    <div
+                                      className={`max-w-xs px-4 py-2 rounded-2xl shadow text-sm whitespace-pre-line bg-gray-200 text-gray-800 rounded-bl-none`}
+                                    >
+                                      {messageText}
+                                    </div>
+                                    <span className="text-[10px] text-gray-400 ml-0.5 align-bottom" style={{marginBottom: '1px'}}>{formatTimeHHMM(msg.timestamp)}</span>
+                                  </>
+                              }
                               {isOwn && (
                                 <div
                                   className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-base shadow"
