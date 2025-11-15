@@ -161,8 +161,8 @@ function App() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-400 via-pink-300 to-blue-400 p-4">
         <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl p-10 flex flex-col items-center w-full max-w-md">
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-pink-500 to-blue-600 mb-8 drop-shadow-lg">
-            Multi-Client Chat
+          <h1 className="text-4xl font-extrabold christmas-title mb-8 drop-shadow-lg">
+            Chat the Chat
           </h1>
           <div className="flex flex-col w-full gap-4">
             <div className="flex flex-col items-center gap-2 mb-2">
@@ -312,8 +312,8 @@ function App() {
         </div>
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col p-8 gap-4 bg-white/80">
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-pink-500 to-blue-600 mb-2 text-center drop-shadow-lg">
-            Multi-Client Chat
+          <h1 className="text-3xl font-extrabold christmas-title mb-2 text-center drop-shadow-lg">
+            Chat the Chat
           </h1>
           <div className="mb-2 text-center text-gray-600">
             <strong>Logged in as: {currentUser}</strong>

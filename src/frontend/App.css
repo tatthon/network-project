@@ -1,1 +1,107 @@
 @import "tailwindcss";
+
+
+:root{
+	--christmas-green: #064e3b;
+	--christmas-red: #b91c1c;
+	--christmas-gold: #f59e0b;
+}
+
+/* Festive page background (subtle green gradient) */
+body{
+	background: radial-gradient(circle at 10% 10%, rgba(249,115,22,0.06), transparent 20%), linear-gradient(180deg, #0f172a 0%, #04251a 100%);
+	color: #f8fafc;
+}
+
+/* Soft snow overlay using a repeating pattern and translate animation */
+body::before{
+	content: "";
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.9) 1px, transparent 2px), radial-gradient(circle at 3px 6px, rgba(255,255,255,0.9) 1px, transparent 2px);
+	background-size: 40px 40px, 60px 60px;
+	opacity: 0.6;
+	mix-blend-mode: screen;
+	animation: snow-fall 15s linear infinite;
+}
+
+@keyframes snow-fall{
+	from { background-position: 0 -20px, 0 0; }
+	to { background-position: 0 1000px, 0 800px; }
+}
+
+/* Decorative tree in bottom-left */
+body::after{
+	content: "";
+	position: fixed;
+	left: 12px;
+	bottom: 12px;
+	width: 120px;
+	height: 120px;
+	background-image: url('/src/frontend/assets/christmas-tree.svg');
+	background-repeat: no-repeat;
+	background-size: contain;
+	opacity: 0.95;
+	pointer-events: none;
+	filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4));
+}
+
+/* Slight sparkle on titles */
+.christmas-title{
+	background-image: linear-gradient(90deg, var(--christmas-red), var(--christmas-green));
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+}
+
+/* Small holly badge near top-right */
+.holly-badge{
+	position: fixed;
+	right: 18px;
+	top: 12px;
+	width: 56px;
+	height: 56px;
+	background: radial-gradient(circle at 30% 30%, var(--christmas-gold), transparent 40%), linear-gradient(180deg, rgba(255,255,255,0.06), transparent);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	box-shadow: 0 6px 12px rgba(2,6,23,0.6);
+}
+
+
+input[type="text"], input[type="search"], textarea, select {
+	color: var(--christmas-green);
+	caret-color: var(--christmas-green);
+}
+
+
+input::placeholder, textarea::placeholder {
+	color: rgba(6,78,59,0.45);
+}
+
+/* Improve textbox visibility when inside white containers */
+#root input[type="text"],
+#root input[type="search"],
+#root textarea,
+#root select {
+	background-color: rgba(6,78,59,0.04) !important; /* subtle green tint */
+	border: 1px solid rgba(6,78,59,0.12) !important;
+	box-shadow: inset 0 1px 2px rgba(2,6,23,0.03) !important;
+	color: var(--christmas-green) !important;
+	caret-color: var(--christmas-green) !important;
+}
+
+
+#root input[type="text"]:focus,
+#root textarea:focus,
+#root select:focus {
+	background-color: rgba(6,78,59,0.06) !important;
+	border-color: rgba(6,78,59,0.22) !important;
+	outline: none !important;
+}
+
+
+

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Simple Christmas tree SVG (small decorative asset) -->
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 64 64" fill="none">
+  <g transform="translate(0,0)">
+    <polygon points="32,6 12,36 22,36 10,54 54,54 42,36 52,36" fill="#0b6623"/>
+    <rect x="28" y="54" width="8" height="6" fill="#8b5a2b"/>
+    <circle cx="20" cy="30" r="2" fill="#ef4444"/>
+    <circle cx="44" cy="30" r="2" fill="#facc15"/>
+    <circle cx="30" cy="20" r="2" fill="#fb7185"/>
+    <circle cx="38" cy="24" r="2" fill="#60a5fa"/>
+  </g>
+</svg>
